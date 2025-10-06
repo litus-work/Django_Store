@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+{% block title %}Заказ успешно оформлен{% endblock %}
+
+{% block content %}
+<div class="bg-white shadow-md rounded-xl p-6 text-center max-w-lg mx-auto mt-10">
+  <p class="text-2xl font-bold mb-4">
+    ✅ Заказ успешно оформлен!
+  </p>
+  <p>Номер вашего заказа: <strong>{{ order.id }}</strong></p>
+  <p>Город: <strong>{{ order.city }}</strong></p>
+  <p>Отделение: <strong>{{ order.warehouse }}</strong></p>
+  <p>Сумма заказа: <strong>{{ order.total_price }} грн</strong></p>
+
+  <a href="{% url 'core:product_list' %}" class="text-blue-600 mt-4 inline-block hover:underline">
+    Вернуться к покупкам
+  </a>
+</div>
+{% endblock %}

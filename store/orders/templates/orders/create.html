@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+{% block title %}Оформление заказа{% endblock %}
+
+{% block content %}
+<h2 class="text-3xl font-bold mb-6">Оформление заказа</h2>
+
+<form method="post" class="bg-white p-6 rounded-xl shadow-md max-w-lg">
+  {% csrf_token %}
+  <div class="mb-4">
+    <label for="id_city" class="block text-sm font-medium mb-2">Город</label>
+    {{ form.city }}
+  </div>
+
+  <div class="mb-4">
+    <label for="id_warehouse" class="block text-sm font-medium mb-2">Отделение</label>
+    {{ form.warehouse }}
+  </div>
+
+  <button type="submit" class="px-4 py-2 rounded bg-blue-600 text-white hover:bg-blue-700">
+    Подтвердить заказ
+  </button>
+</form>
+{% endblock %}

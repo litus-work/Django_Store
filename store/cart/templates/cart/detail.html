@@ -5,28 +5,27 @@
 <h2 class="text-3xl font-bold mb-6">Корзина</h2>
 
 {% if cart|length %}
+  <!-- 🧺 Товары в корзине -->
   <div class="space-y-4">
     {% for item in cart %}
-        <div class="bg-white rounded-xl shadow p-4 flex items-center gap-4">
-    {% with p=item.product %}
-
+      {% with p=item.product %}
+      <div class="bg-white rounded-xl shadow p-4 flex items-center gap-4">
         {% if p.images.all %}
-            <img src="{{ p.images.first.image.url }}" alt="{{ p.name }}" class="w-20 h-20 object-contain">
+          <img src="{{ p.images.first.image.url }}" alt="{{ p.name }}" class="w-20 h-20 object-contain">
         {% endif %}
         <div class="flex-1">
-            <a href="{% url 'core:product_detail' p.slug %}" class="font-semibold hover:underline">{{ p.name }}</a>
-            <div class="text-sm text-gray-600">Цена: {{ item.price }} грн</div>
+          <a href="{% url 'core:product_detail' p.slug %}" class="font-semibold hover:underline">{{ p.name }}</a>
+          <div class="text-sm text-gray-600">Цена: {{ item.price }} грн</div>
         </div>
+
         {% if p.stock == 0 %}
-            <div class="text-red-600 text-sm">Нет в наличии</div>
+          <div class="text-red-600 text-sm">Нет в наличии</div>
         {% endif %}
+
+        <!-- 🔁 Обновление количества -->
         <form action="{% url 'cart:add' p.id %}" method="post" class="flex items-center gap-2">
           {% csrf_token %}
-          <input type="number"
-                 name="quantity"
-                 min="1"
-                 max="{{ p.stock }}"
-                 value="{{ item.quantity }}"
+          <input type="number" name="quantity" min="1" max="{{ p.stock }}" value="{{ item.quantity }}"
                  class="w-24 border rounded px-3 py-2">
           <input type="hidden" name="override" value="True">
           <button class="px-3 py-2 rounded bg-gray-100 hover:bg-gray-200">Обновить</button>
@@ -35,15 +34,17 @@
         <div class="text-xs text-gray-500">В наличии: {{ p.stock }}</div>
         <div class="w-32 text-right font-semibold">{{ item.total_price }} грн</div>
 
+        <!-- ❌ Удаление -->
         <form action="{% url 'cart:remove' p.id %}" method="post">
-            {% csrf_token %}
-            <button class="px-3 py-2 rounded bg-red-50 text-red-700 hover:bg-red-100">Удалить</button>
+          {% csrf_token %}
+          <button class="px-3 py-2 rounded bg-red-50 text-red-700 hover:bg-red-100">Удалить</button>
         </form>
-{% endwith %}
-  </div>
+      </div>
+      {% endwith %}
     {% endfor %}
   </div>
 
+  <!-- 💰 Итого -->
   <div class="mt-6 flex items-center justify-between">
     <form action="{% url 'cart:clear' %}" method="post">
       {% csrf_token %}
@@ -54,75 +55,92 @@
       Итого: <span class="font-bold">{{ cart.get_total_price }} грн</span>
     </div>
   </div>
-    <!-- 🚚 Блок доставки Nova Poshta -->
-<h3 class="text-2xl font-semibold mt-8 mb-4">Доставка</h3>
-<div id="delivery" class="bg-gray-50 p-4 rounded-lg shadow-sm">
-  <label class="block text-sm font-medium text-gray-700 mb-2">Город:</label>
-  <input type="text" id="city" placeholder="Введите город"
-         class="w-full border rounded px-3 py-2 mb-3 focus:ring focus:ring-blue-200">
 
-  <label class="block text-sm font-medium text-gray-700 mb-2">Отделение:</label>
-  <select id="warehouse"
-          class="w-full border rounded px-3 py-2 focus:ring focus:ring-blue-200">
-      <option>Сначала выберите город</option>
-  </select>
-</div>
+  <!-- 🚚 Доставка -->
+  <h3 class="text-2xl font-semibold mt-8 mb-4">Доставка</h3>
+  <div id="delivery" class="bg-gray-50 p-4 rounded-lg shadow-sm">
+    <label class="block text-sm font-medium text-gray-700 mb-2">Город:</label>
+    <input type="text" id="city" placeholder="Введите город"
+           class="w-full border rounded px-3 py-2 mb-3 focus:ring focus:ring-blue-200">
 
-<script>
-document.getElementById('city').addEventListener('input', async (e) => {
-    const q = e.target.value.trim();
-    if (q.length < 2) return;  // не искать слишком короткие запросы
+    <label class="block text-sm font-medium text-gray-700 mb-2">Отделение:</label>
+    <select id="warehouse"
+            class="w-full border rounded px-3 py-2 focus:ring focus:ring-blue-200">
+        <option>Сначала выберите город</option>
+    </select>
+  </div>
 
-    const res = await fetch(`/delivery/cities/?q=${encodeURIComponent(q)}`);
-    const data = await res.json();
+  <!-- 📦 Оформление заказа -->
+  <div class="mt-4 text-right">
+    {% if user.is_authenticated %}
+      <form action="{% url 'orders:order_create' %}" method="post" id="orderForm" class="inline-block">
+        {% csrf_token %}
+        <input type="hidden" name="city" id="city_input" value="">
+        <input type="hidden" name="warehouse" id="warehouse_input" value="">
+        <button type="submit"
+                class="px-4 py-2 rounded bg-blue-600 text-white hover:bg-blue-700">
+          Оформить заказ
+        </button>
+      </form>
+    {% else %}
+      <button class="px-4 py-2 rounded bg-gray-300 text-gray-600 cursor-not-allowed">
+        Оформить заказ
+      </button>
+      <p class="mt-2 text-sm text-red-600">
+        Для оформления заказа необходимо
+        <a href="{% url 'accounts:login' %}" class="underline">войти</a>
+        или
+        <a href="{% url 'accounts:signup' %}" class="underline">зарегистрироваться</a>.
+      </p>
+    {% endif %}
+  </div>
 
-    // очищаем список
-    const select = document.getElementById('warehouse');
-    select.innerHTML = '<option>Выберите отделение</option>';
+  <!-- 🧠 Скрипты -->
+  <script>
+  // 🔹 Подгрузка городов и отделений (Nova Poshta)
+  document.getElementById('city').addEventListener('input', async (e) => {
+      const q = e.target.value.trim();
+      if (q.length < 2) return;
 
-    if (data.length === 0) {
-        select.innerHTML = '<option>Город не найден</option>';
-        return;
-    }
+      const res = await fetch(`/delivery/cities/?q=${encodeURIComponent(q)}`);
+      const data = await res.json();
 
-    // добавляем результаты
-    data.forEach(city => {
-        const opt = document.createElement('option');
-        opt.value = city.Ref;
-        opt.textContent = city.Description;
-        select.appendChild(opt);
-    });
+      const select = document.getElementById('warehouse');
+      select.innerHTML = '<option>Выберите отделение</option>';
 
-    // при выборе города — подгружаем отделения
-    select.addEventListener('change', async () => {
-        const cityRef = select.value;
-        const res2 = await fetch(`/delivery/warehouses/?ref=${cityRef}`);
-        const data2 = await res2.json();
-        select.innerHTML = '';
-        data2.forEach(w => {
-            const opt2 = document.createElement('option');
-            opt2.textContent = w.Description;
-            opt2.value = w.Ref;
-            select.appendChild(opt2);
-        });
-    });
-});
-</script>
-<!-- Конец блока доставки -->
+      if (data.length === 0) {
+          select.innerHTML = '<option>Город не найден</option>';
+          return;
+      }
 
-    <div class="mt-4 text-right">
-      {% if user.is_authenticated %}
-        <a href="#"
-           class="px-4 py-2 rounded bg-blue-600 text-white hover:bg-blue-700">Оформить заказ</a>
-      {% else %}
-        <button class="px-4 py-2 rounded bg-gray-300 text-gray-600 cursor-not-allowed">Оформить заказ</button>
-        <p class="mt-2 text-sm text-red-600">Для оформления заказа необходимо
-            <a href="{% url 'accounts:login' %}" class="underline">войти</a>
-            или
-            <a href="{% url 'accounts:signup' %}" class="underline">зарегистрироваться</a>.
-        </p>
-      {% endif %}
-    </div>
+      // при вводе города сразу подгружаем отделения
+      const firstCity = data[0];
+      const cityRef = firstCity.Ref;
+      const res2 = await fetch(`/delivery/warehouses/?ref=${cityRef}`);
+      const data2 = await res2.json();
+
+      select.innerHTML = '';
+      data2.forEach(w => {
+          const opt = document.createElement('option');
+          opt.textContent = w.Description;
+          opt.value = w.Ref;
+          select.appendChild(opt);
+      });
+  });
+
+  // 🔹 Перед отправкой формы сохраняем выбранные данные
+  const orderForm = document.getElementById('orderForm');
+  if (orderForm) {
+      orderForm.addEventListener('submit', () => {
+          const city = document.getElementById('city').value;
+          const warehouseSelect = document.getElementById('warehouse');
+          const warehouseText = warehouseSelect.options[warehouseSelect.selectedIndex]?.text || '';
+          document.getElementById('city_input').value = city;
+          document.getElementById('warehouse_input').value = warehouseText;
+      });
+  }
+  </script>
+
 {% else %}
   <p>Корзина пуста.</p>
 {% endif %}
