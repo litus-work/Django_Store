@@ -54,6 +54,61 @@
       Итого: <span class="font-bold">{{ cart.get_total_price }} грн</span>
     </div>
   </div>
+    <!-- 🚚 Блок доставки Nova Poshta -->
+<h3 class="text-2xl font-semibold mt-8 mb-4">Доставка</h3>
+<div id="delivery" class="bg-gray-50 p-4 rounded-lg shadow-sm">
+  <label class="block text-sm font-medium text-gray-700 mb-2">Город:</label>
+  <input type="text" id="city" placeholder="Введите город"
+         class="w-full border rounded px-3 py-2 mb-3 focus:ring focus:ring-blue-200">
+
+  <label class="block text-sm font-medium text-gray-700 mb-2">Отделение:</label>
+  <select id="warehouse"
+          class="w-full border rounded px-3 py-2 focus:ring focus:ring-blue-200">
+      <option>Сначала выберите город</option>
+  </select>
+</div>
+
+<script>
+document.getElementById('city').addEventListener('input', async (e) => {
+    const q = e.target.value.trim();
+    if (q.length < 2) return;  // не искать слишком короткие запросы
+
+    const res = await fetch(`/delivery/cities/?q=${encodeURIComponent(q)}`);
+    const data = await res.json();
+
+    // очищаем список
+    const select = document.getElementById('warehouse');
+    select.innerHTML = '<option>Выберите отделение</option>';
+
+    if (data.length === 0) {
+        select.innerHTML = '<option>Город не найден</option>';
+        return;
+    }
+
+    // добавляем результаты
+    data.forEach(city => {
+        const opt = document.createElement('option');
+        opt.value = city.Ref;
+        opt.textContent = city.Description;
+        select.appendChild(opt);
+    });
+
+    // при выборе города — подгружаем отделения
+    select.addEventListener('change', async () => {
+        const cityRef = select.value;
+        const res2 = await fetch(`/delivery/warehouses/?ref=${cityRef}`);
+        const data2 = await res2.json();
+        select.innerHTML = '';
+        data2.forEach(w => {
+            const opt2 = document.createElement('option');
+            opt2.textContent = w.Description;
+            opt2.value = w.Ref;
+            select.appendChild(opt2);
+        });
+    });
+});
+</script>
+<!-- Конец блока доставки -->
 
     <div class="mt-4 text-right">
       {% if user.is_authenticated %}
