@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+{% block title %}Мои заказы{% endblock %}
+
+{% block content %}
+<h2 class="text-3xl font-bold mb-6">Мои заказы</h2>
+
+{% if orders %}
+  <div class="space-y-4">
+    {% for order in orders %}
+      <div class="bg-white shadow rounded-xl p-4">
+        <p>🆔 <b>Заказ №{{ order.id }}</b> от {{ order.created|date:"d.m.Y H:i" }}</p>
+        <p>📦 Сумма: <b>{{ order.total_price }} грн</b></p>
+        <p>🏙️ Город: {{ order.city }}</p>
+        <p>🏤 Отделение: {{ order.warehouse }}</p>
+
+        <h4 class="mt-2 font-semibold">Товары:</h4>
+        <ul class="list-disc pl-5 text-sm">
+          {% for item in order.items.all %}
+            <li>{{ item.product.name }} — {{ item.quantity }} шт. ({{ item.price }} грн)</li>
+          {% endfor %}
+        </ul>
+      </div>
+    {% endfor %}
+  </div>
+{% else %}
+  <p>У вас пока нет заказов.</p>
+{% endif %}
+{% endblock %}
